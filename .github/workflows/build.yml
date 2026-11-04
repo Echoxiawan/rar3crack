@@ -21,14 +21,10 @@ jobs:
         run: cmake --build build -j
       - name: Self-test
         run: ./build/selftest
-      - name: Package
-        run: |
-          mkdir -p dist
-          tar -czf dist/rar3crack-macos-arm64.tar.gz -C build rar3crack selftest
       - uses: actions/upload-artifact@v4
         with:
           name: rar3crack-macos-arm64
-          path: dist/*.tar.gz
+          path: build/rar3crack
 
   # ---------- Windows (CPU only; GitHub runners have no OpenCL SDK) ----------
   windows:
@@ -42,15 +38,10 @@ jobs:
         run: cmake --build build --config Release -j
       - name: Self-test
         run: .\build\Release\selftest.exe
-      - name: Package
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force dist | Out-Null
-          Compress-Archive -Path build/Release/rar3crack.exe, build/Release/selftest.exe -DestinationPath dist/rar3crack-windows-x64.zip
       - uses: actions/upload-artifact@v4
         with:
           name: rar3crack-windows-x64
-          path: dist/*.zip
+          path: build/Release/rar3crack.exe
 
   # ---------- Linux (CPU + OpenCL) ----------
   linux:
@@ -66,16 +57,12 @@ jobs:
         run: cmake --build build -j
       - name: Self-test
         run: ./build/selftest
-      - name: Package
-        run: |
-          mkdir -p dist
-          tar -czf dist/rar3crack-linux-x64.tar.gz -C build rar3crack selftest
       - uses: actions/upload-artifact@v4
         with:
           name: rar3crack-linux-x64
-          path: dist/*.tar.gz
+          path: build/rar3crack
 
-  # ---------- Release: attach all artifacts to a GitHub Release on tag ----------
+  # ---------- Release: attach raw binaries to a GitHub Release on tag ----------
   release:
     name: Release
     needs: [ macos, windows, linux ]
@@ -84,6 +71,7 @@ jobs:
     permissions:
       contents: write   # required by action-gh-release to create the Release
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -92,7 +80,17 @@ jobs:
           mkdir -p release
           find artifacts -type f -exec cp {} release/ \;
           ls -la release
+      - name: Extract tag message as changelog
+        run: |
+          git fetch origin --tags --force --quiet
+          {
+            git tag -l --format='%(contents:subject)' "${GITHUB_REF_NAME}"
+            echo
+            git tag -l --format='%(contents:body)' "${GITHUB_REF_NAME}"
+          } > body.md
+          cat body.md
       - uses: softprops/action-gh-release@v2
         with:
           files: release/*
+          body_path: body.md
           generate_release_notes: true
