@@ -1,0 +1,16 @@
+/build/
+*.o
+*.obj
+*.exe
+.DS_Store
+.cache/
+compile_commands.json
+
+# IDE / 本地配置，不入库
+.idea/
+.agents/
+.claude/
+skills-lock.json
+
+# 本地发布脚本，不入库
+scripts/release.sh
