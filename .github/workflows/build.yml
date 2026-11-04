@@ -21,10 +21,12 @@ jobs:
         run: cmake --build build -j
       - name: Self-test
         run: ./build/selftest
+      - name: Rename artifact per platform
+        run: cp build/rar3crack rar3crack-macos-arm64
       - uses: actions/upload-artifact@v4
         with:
           name: rar3crack-macos-arm64
-          path: build/rar3crack
+          path: rar3crack-macos-arm64
 
   # ---------- Windows (CPU only; GitHub runners have no OpenCL SDK) ----------
   windows:
@@ -57,10 +59,12 @@ jobs:
         run: cmake --build build -j
       - name: Self-test
         run: ./build/selftest
+      - name: Rename artifact per platform
+        run: cp build/rar3crack rar3crack-linux-x64
       - uses: actions/upload-artifact@v4
         with:
           name: rar3crack-linux-x64
-          path: build/rar3crack
+          path: rar3crack-linux-x64
 
   # ---------- Release: attach raw binaries to a GitHub Release on tag ----------
   release:
