@@ -30,14 +30,14 @@ jobs:
           name: rar3crack-macos-arm64
           path: dist/*.tar.gz
 
-  # ---------- Windows (CPU + OpenCL) ----------
+  # ---------- Windows (CPU only; GitHub runners have no OpenCL SDK) ----------
   windows:
-    name: Windows (CPU+OpenCL)
+    name: Windows (CPU)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DRAR3_WITH_OPENCL=ON
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build --config Release -j
       - name: Self-test
